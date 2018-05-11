@@ -35,7 +35,7 @@
                 android:layout_marginBottom="20dp"
                 android:layout_marginTop="40dp"
                 android:transitionName="avatar"
-                android:scaleType="fitCenter"
+                android:scaleType="centerCrop"
                 android:src="@mipmap/avatar"
                 app:riv_border_color="@android:color/holo_blue_dark"
                 app:riv_border_width="2dp"
@@ -87,7 +87,7 @@
                 android:button="@null"
                 android:gravity="center"
                 android:padding="8dp"
-                android:text="拖延"
+                android:text="事务"
                 android:textColor="@drawable/top_r_text"
                 android:textSize="18sp" />
 
@@ -100,7 +100,7 @@
                 android:button="@null"
                 android:gravity="center"
                 android:padding="8dp"
-                android:text="放松"
+                android:text="休息"
                 android:textColor="@drawable/top_r_text"
                 android:textSize="18sp" />
 

@@ -4,6 +4,8 @@ import android.Manifest;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
@@ -19,11 +21,12 @@ import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.FileProvider;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,10 +36,14 @@ import com.makeramen.roundedimageview.RoundedImageView;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.security.Permissions;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import cn.bmob.v3.datatype.BmobFile;
+import cn.bmob.v3.exception.BmobException;
+import cn.bmob.v3.listener.UpdateListener;
+import cn.bmob.v3.listener.UploadFileListener;
 
 public class UserInfoActivity extends Activity {
     private TextView nickname;
@@ -44,8 +51,13 @@ public class UserInfoActivity extends Activity {
     private TextView phoneNumber;
     private TextView changePassword;
     private TextView logout;
+    private LinearLayout changeNickname;
+    private LinearLayout changeUsername;
+    private EditText nicknameEdit;
     private ImageView back;
     private RoundedImageView avatar;
+
+    private User currentUser;
 
     //调用系统相册-选择图片
     private static final int IMAGE = 1;
@@ -65,11 +77,14 @@ public class UserInfoActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_userinfo);
 
+        //获取本地用户
+        currentUser = getCurrentUser();
+
         //初始化标题栏
         initActionBar();
 
         //初始化控件
-        initwidget();
+        initWidget();
 
         //初始化用户信息
         initUserInfo();
@@ -100,7 +115,7 @@ public class UserInfoActivity extends Activity {
         });
 
         back.setOnClickListener(v -> {
-            startActivity(new Intent(UserInfoActivity.this,UserActivity.class));
+            startActivity(new Intent(UserInfoActivity.this, UserActivity.class));
             finish();
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
         });
@@ -112,7 +127,7 @@ public class UserInfoActivity extends Activity {
 
             view.findViewById(R.id.camera_textview).setOnClickListener(view1 -> {
                 //调用系统相机拍照
-                picPath = Environment.getExternalStorageDirectory().getPath()+"/EasyLife/pic/IMG_" + System.currentTimeMillis() + "_temp.png";
+                picPath = Environment.getExternalStorageDirectory().getPath() + "/EasyLife/pic/IMG_" + System.currentTimeMillis() + "_temp.png";
                 File file = new File(picPath);
 
                 // android 7.0系统解决拍照的问题
@@ -126,7 +141,7 @@ public class UserInfoActivity extends Activity {
                     /* 相机请求码 */
                     final int REQUEST_CAMERA = 0;
                     ActivityCompat.requestPermissions(this,
-                            new String[]{android.Manifest.permission.CAMERA},REQUEST_CAMERA);
+                            new String[]{android.Manifest.permission.CAMERA}, REQUEST_CAMERA);
                 }
                 final Handler handler = new Handler();
                 final Timer timer = new Timer(false);
@@ -187,6 +202,93 @@ public class UserInfoActivity extends Activity {
             dialog.show();
         });
 
+        changeNickname.setOnClickListener(v -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            View view = LayoutInflater.from(this).inflate(R.layout.change_nickname_dialog, null);
+            nicknameEdit = view.findViewById(R.id.nickname_edittext);
+            builder.setTitle("请输入新的昵称");
+            builder.setView(view);
+            builder.setPositiveButton("确定", (dialog, which) -> {
+                dialog.dismiss();
+                ProgressDialog waitingDialog = new ProgressDialog(this);
+                waitingDialog.setTitle("修改昵称");
+                waitingDialog.setMessage("请稍候...");
+                waitingDialog.setIndeterminate(true);
+                waitingDialog.setCancelable(false);
+                waitingDialog.show();
+                // 保存用户昵称
+                String newNickname = nicknameEdit.getText().toString();
+                User user = getCurrentUser();
+                user.setValue("nickname", newNickname);
+                user.update(user.getObjectId(), new UpdateListener() {
+                    @Override
+                    public void done(BmobException e) {
+                        if (e == null) {
+                            nickname.setText(newNickname);
+                            waitingDialog.dismiss();
+                            Toast.makeText(UserInfoActivity.this, "修改成功！", Toast.LENGTH_SHORT).show();
+                        } else {
+                            waitingDialog.dismiss();
+                            Toast.makeText(UserInfoActivity.this, "保存失败！\n" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            });
+            builder.setNegativeButton("取消", ((dialog, which) -> {
+                dialog.dismiss();
+            }));
+            builder.show();
+        });
+
+        changeUsername.setOnClickListener(listener -> {
+            if (!username.getText().toString().equals("el" + getCurrentUser().getMobilePhoneNumber())) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("你的账号已经修改过，请勿重复操作！");
+                builder.setPositiveButton("好的，知道了", ((dialog, which) -> {
+                    dialog.dismiss();
+                }));
+                builder.show();
+            } else {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("设置新账号");
+                View view = LayoutInflater.from(this).inflate(R.layout.change_username_dialog, null);
+                EditText usernameEdit = view.findViewById(R.id.username_edittext);
+                builder.setView(view);
+                builder.setPositiveButton("确定修改", ((dialog, which) -> {
+                    String newUsername = usernameEdit.getText().toString();
+                    if (newUsername.equals(username.getText().toString())) {
+                        dialog.dismiss();
+                    } else {
+                        ProgressDialog waitingDialog = new ProgressDialog(this);
+                        waitingDialog.setTitle("设置账号");
+                        waitingDialog.setMessage("请稍候...");
+                        waitingDialog.setIndeterminate(true);
+                        waitingDialog.setCancelable(false);
+                        waitingDialog.show();
+                        User user = getCurrentUser();
+                        user.setUsername(newUsername);
+                        user.update(user.getObjectId(), new UpdateListener() {
+                            @Override
+                            public void done(BmobException e) {
+                                if (e == null) {
+                                    username.setText(newUsername);
+                                    waitingDialog.dismiss();
+                                    Toast.makeText(UserInfoActivity.this, "设置成功！", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    waitingDialog.dismiss();
+                                    Toast.makeText(UserInfoActivity.this, "设置失败！", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+                    }
+                }));
+                builder.setNegativeButton("我再想想", ((dialog, which) -> {
+                    dialog.dismiss();
+                }));
+                builder.show();
+            }
+        });
+
     }
 
     @Override
@@ -207,7 +309,7 @@ public class UserInfoActivity extends Activity {
                 c.close();
             }
 
-            if (requestCode == REQUEST_ORIGINAL){
+            if (requestCode == REQUEST_ORIGINAL) {
                 /**
                  * 这种方法是通过内存卡的路径进行读取图片，所以的到的图片是拍摄的原图
                  */
@@ -230,7 +332,35 @@ public class UserInfoActivity extends Activity {
             dialog.dismiss();
         });
         builder.setNegativeButton("确定", (dialog, which) -> {
-
+            ProgressDialog waitingDialog = new ProgressDialog(this);
+            waitingDialog.setMessage("正在保存...");
+            waitingDialog.setIndeterminate(true);
+            waitingDialog.setCancelable(false);
+            waitingDialog.show();
+            BmobFile avatar = new BmobFile(new File(imagePath));
+            avatar.upload(new UploadFileListener() {
+                @Override
+                public void done(BmobException e) {
+                    currentUser.setValue("avatar", avatar.getFileUrl());
+                }
+            });
+            currentUser.update(currentUser.getObjectId(), new UpdateListener() {
+                @Override
+                public void done(BmobException e) {
+                    waitingDialog.dismiss();
+                    if (e != null) {
+                        e.printStackTrace();
+                        Toast.makeText(UserInfoActivity.this, "头像修改失败！请重试！\n" + e.toString(), Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(UserInfoActivity.this, "头像修改成功！", Toast.LENGTH_SHORT).show();
+                        try {
+                            UserInfoActivity.this.avatar.setImageBitmap(BitmapFactory.decodeStream(new FileInputStream(imagePath)));
+                        } catch (FileNotFoundException e1) {
+                            e1.printStackTrace();
+                        }
+                    }
+                }
+            });
         });
         builder.show();
     }
@@ -239,7 +369,7 @@ public class UserInfoActivity extends Activity {
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
             if (event.getAction() == KeyEvent.ACTION_UP && event.getRepeatCount() == 0) {
-                startActivity(new Intent(UserInfoActivity.this,UserActivity.class));
+                startActivity(new Intent(UserInfoActivity.this, UserActivity.class));
                 finish();
                 overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             }
@@ -266,7 +396,9 @@ public class UserInfoActivity extends Activity {
     }
 
     //初始化控件
-    private void initwidget() {
+    private void initWidget() {
+        changeNickname = findViewById(R.id.nickname_linearlayout);
+        changeUsername = findViewById(R.id.change_username_linearlayout);
         nickname = findViewById(R.id.nickname_textview);
         username = findViewById(R.id.username_textview);
         phoneNumber = findViewById(R.id.phonenum_textview);
@@ -285,7 +417,9 @@ public class UserInfoActivity extends Activity {
                 preferences.getString("nickname", "null"),
                 preferences.getString("password", "null"),
                 preferences.getString("user_phone", "null"));
-
+        currentUser.setObjectId(preferences.getString("objectID", "null"));
+        currentUser.setPassword(preferences.getString("password", "null"));
+        currentUser.setAvatarUrl(preferences.getString("avatar","null"));
         return currentUser;
     }
 

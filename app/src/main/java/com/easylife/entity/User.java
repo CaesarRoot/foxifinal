@@ -1,12 +1,12 @@
 package com.easylife.entity;
 
-import org.json.JSONObject;
-
 import cn.bmob.v3.BmobUser;
+import cn.bmob.v3.datatype.BmobFile;
 
 public class User extends BmobUser {
     private String nickname;
     private String pw;
+    private String avatarUrl;
 
     public User(){}
 
@@ -44,5 +44,21 @@ public class User extends BmobUser {
 
     public String getPassword() {
         return pw;
+    }
+
+    public String getPw() {
+        return pw;
+    }
+
+    public void setPw(String pw) {
+        this.pw = pw;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 }

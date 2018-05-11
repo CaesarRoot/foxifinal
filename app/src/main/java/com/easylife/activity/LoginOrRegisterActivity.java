@@ -40,6 +40,7 @@ import java.util.List;
 
 import cn.bmob.v3.BmobUser;
 import cn.bmob.v3.exception.BmobException;
+import cn.bmob.v3.listener.FindListener;
 import cn.bmob.v3.listener.SaveListener;
 
 public class LoginOrRegisterActivity extends FragmentActivity {
@@ -59,7 +60,7 @@ public class LoginOrRegisterActivity extends FragmentActivity {
     private ImageView background;
 
 
-    private String phone;
+    private String phoneOrAccount;
     private String password;
     private String username;
     private String verifyingCode;
@@ -175,7 +176,7 @@ public class LoginOrRegisterActivity extends FragmentActivity {
         dailySentence.setText(sentence[0]);
         if (sentence.length == 2) {
             sentenceOrigin.setText("--" + sentence[1]);
-        }else {
+        } else {
             sentenceOrigin.setText("");
         }
     }
@@ -188,7 +189,7 @@ public class LoginOrRegisterActivity extends FragmentActivity {
         dialog.setCancelable(false);
         dialog.show();
 
-        phone = MyFragment.phoneNumberForLogin.getText().toString();
+        phoneOrAccount = MyFragment.phoneNumberForLogin.getText().toString();
         password = MyFragment.passwordForLogin.getText().toString();
 
         if (password.length() < 8 || password.length() > 16) {
@@ -197,46 +198,61 @@ public class LoginOrRegisterActivity extends FragmentActivity {
             return;
         }
 
-        if (phone.charAt(0) == 'e') {
-            username = phone;
-            if (!phone.substring(2, phone.length()).matches(phonePattern)) {
-                dialog.dismiss();
-                Toast.makeText(LoginOrRegisterActivity.this, "请输入正确的账号！", Toast.LENGTH_SHORT).show();
-                return;
-            }
-        } else {
-            username = "el" + phone;
-            if (!phone.matches(phonePattern)) {
-                dialog.dismiss();
-                Toast.makeText(LoginOrRegisterActivity.this, "请输入正确的手机号！", Toast.LENGTH_SHORT).show();
-                return;
-            }
-        }
-        User user = new User(username, password, phone);
-        user.login(new SaveListener<User>() {
+//        if (phone.charAt(0) == 'e') {
+//            username = phone;
+//            if (!phone.substring(2, phone.length()).matches(phonePattern)) {
+//                dialog.dismiss();
+//                Toast.makeText(LoginOrRegisterActivity.this, "请输入正确的账号！", Toast.LENGTH_SHORT).show();
+//                return;
+//            }
+//        } else {
+//            username = "el" + phone;
+//            if (!phone.matches(phonePattern)) {
+//                dialog.dismiss();
+//                Toast.makeText(LoginOrRegisterActivity.this, "请输入正确的手机号！", Toast.LENGTH_SHORT).show();
+//                return;
+//            }
+//        }
+        User user = new User();
+        user.setPassword(password);
+        MainApplication.userQuery.addWhereEqualTo("mobilePhoneNumber", phoneOrAccount);
+        MainApplication.userQuery.findObjects(new FindListener<User>() {
             @Override
-            public void done(User user, BmobException e) {
-                dialog.dismiss();
-                if (e != null) {
-                    System.out.println(e.toString());
-                    Toast.makeText(LoginOrRegisterActivity.this, e.toString(), Toast.LENGTH_LONG).show();
+            public void done(List<User> list, BmobException e) {
+                if (e == null) {
+                    user.setUsername(list.get(0).getUsername());
                 } else {
-                    saveLocalUser(user);
-                    startActivity(new Intent(LoginOrRegisterActivity.this, MainControlActivity.class));
-                    finish();
-                    Toast.makeText(LoginOrRegisterActivity.this, "登录成功！", Toast.LENGTH_SHORT).show();
+                    user.setUsername(phoneOrAccount);
                 }
+                user.login(new SaveListener<User>() {
+                    @Override
+                    public void done(User user, BmobException e) {
+                        dialog.dismiss();
+                        if (e != null) {
+                            System.out.println(e.toString());
+                            Toast.makeText(LoginOrRegisterActivity.this, e.toString() + "登录失败！请检查账号或手机号是否正确！", Toast.LENGTH_LONG).show();
+                        } else {
+                            saveLocalUser(user);
+                            startActivity(new Intent(LoginOrRegisterActivity.this, MainControlActivity.class));
+                            finish();
+                            Toast.makeText(LoginOrRegisterActivity.this, "登录成功！", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
             }
         });
+
     }
 
     //保存已登录用户到本地
     private void saveLocalUser(User user) {
         SharedPreferences.Editor editor = getSharedPreferences("login_user", MODE_PRIVATE).edit();
+        editor.putString("objectID", user.getObjectId());
         editor.putString("user_phone", user.getMobilePhoneNumber());
         editor.putString("username", user.getUsername());
         editor.putString("nickname", user.getNickname());
         editor.putString("password", user.getPassword());
+        editor.putString("avatar", user.getAvatarUrl());
         editor.apply();
     }
 
@@ -248,11 +264,11 @@ public class LoginOrRegisterActivity extends FragmentActivity {
         dialog.setCancelable(false);
         dialog.show();
 
-        phone = MyFragment.phoneNumberForRegister.getText().toString();
+        phoneOrAccount = MyFragment.phoneNumberForRegister.getText().toString();
         password = MyFragment.passwordForRegister.getText().toString();
         verifyingCode = MyFragment.verifyingCodeForRegister.getText().toString();
 
-        if (!phone.matches(phonePattern)) {
+        if (!phoneOrAccount.matches(phonePattern)) {
             dialog.dismiss();
             Toast.makeText(LoginOrRegisterActivity.this, "请输入正确的手机号！", Toast.LENGTH_SHORT).show();
             return;
@@ -268,8 +284,8 @@ public class LoginOrRegisterActivity extends FragmentActivity {
             return;
         }
 
-        username = "el" + phone;
-        User user = new User(username, password, phone);
+        User user = new User(phoneOrAccount, password);
+        user.setUsername("el" + phoneOrAccount);
         user.signUp(new SaveListener<User>() {
             @Override
             public void done(User user, BmobException e) {
@@ -279,24 +295,25 @@ public class LoginOrRegisterActivity extends FragmentActivity {
                     Toast.makeText(LoginOrRegisterActivity.this, e.toString(), Toast.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(LoginOrRegisterActivity.this, "注册成功！", Toast.LENGTH_SHORT).show();
-                    // TODO: 2018/4/20  实现自动登录
+                    // 实现自动登录
+                    ProgressDialog dialog = new ProgressDialog(LoginOrRegisterActivity.this);
+                    dialog.setMessage("正在登录...");
+                    dialog.setIndeterminate(true);
+                    dialog.setCancelable(true);
+                    dialog.show();
                     user.setPassword(password);
                     user.login(new SaveListener<User>() {
                         @Override
                         public void done(User user, BmobException e) {
                             if (e != null) {
                                 System.out.println(e.toString());
-                                Toast.makeText(LoginOrRegisterActivity.this, e.toString(), Toast.LENGTH_LONG).show();
+                                Toast.makeText(LoginOrRegisterActivity.this, "登录出现异常，请重试！", Toast.LENGTH_LONG).show();
                             } else {
-                                // TODO: 2018/4/20  实现登录后跳转至主界面
-                                ProgressDialog dialog = new ProgressDialog(LoginOrRegisterActivity.this);
-                                dialog.setMessage("正在登录...");
-                                dialog.setIndeterminate(true);
-                                dialog.setCancelable(true);
-                                dialog.show();
+                                // 实现登录后跳转至主界面
                                 saveLocalUser(user);
                                 startActivity(new Intent(LoginOrRegisterActivity.this, MainControlActivity.class));
                                 Toast.makeText(LoginOrRegisterActivity.this, "登录成功！", Toast.LENGTH_SHORT).show();
+                                dialog.dismiss();
                                 finish();
                             }
                         }
@@ -367,9 +384,9 @@ public class LoginOrRegisterActivity extends FragmentActivity {
 
     //发送验证码
     public void send_verifying_code(View v) {
-        phone = MyFragment.phoneNumberForRegister.getText().toString();
+        phoneOrAccount = MyFragment.phoneNumberForRegister.getText().toString();
         verifyingCodeToSend = String.valueOf((int) (Math.random() * 1000000));
-        if (phone.matches(phonePattern)) {
+        if (phoneOrAccount.matches(phonePattern)) {
             //获取发送短信权限
 //            requestPermission();
             Intent sendIntent = new Intent("SENT_SMS_ACTION");
@@ -377,7 +394,7 @@ public class LoginOrRegisterActivity extends FragmentActivity {
             SmsManager smsManager = SmsManager.getDefault();
             List<String> divideContents = smsManager.divideMessage("你此次注册的验证码是：" + verifyingCodeToSend);
             for (String text : divideContents) {
-                smsManager.sendTextMessage(phone, null, text, sendPI, null);
+                smsManager.sendTextMessage(phoneOrAccount, null, text, sendPI, null);
             }
             Toast.makeText(LoginOrRegisterActivity.this, "验证码发送成功！", Toast.LENGTH_SHORT).show();
         } else {

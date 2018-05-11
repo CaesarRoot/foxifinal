@@ -91,11 +91,6 @@ public class UserActivity extends FragmentActivity {
             startActivity(intent);
         });
 
-        friend.setOnClickListener(v -> {
-            Intent intent = new Intent(UserActivity.this, FriendActivity.class);
-            startActivity(intent);
-        });
-
         settings.setOnClickListener(v -> {
             Intent intent = new Intent(UserActivity.this, SettingsActivity.class);
             startActivity(intent);
