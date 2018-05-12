@@ -66,7 +66,7 @@ public class Delay extends Fragment {
         readData();
 
         adapter = new DelayPagerAdapter(tasks, ddl);
-        adapter.setOnItemClickListener((view, position) -> showDialogtoChange(view, position));
+        adapter.setOnItemClickListener((view, position) -> Delay.this.showDialogtoChange(view, position));
     }
 
     private void showDialogtoAdd(){
