@@ -58,6 +58,7 @@ public class Delay extends Fragment {
     private void initData() {
         layoutManager = new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false);
 
+        readFromServer("tasksAndddl");
         readData();
 //        加载 tasks & ddl 数据
 //        注意顺序一定要先于adapter 否则adapter就无法正确绑定数组
@@ -88,6 +89,7 @@ public class Delay extends Fragment {
             Delay.this.tasks.add(mytext.getText().toString());
             Delay.this.ddl.add(date);
             saveData();
+            saveToServer();
             adapter.notifyItemInserted(0);
             adapter.notifyItemRangeChanged(0,tasks.size());
         });
@@ -126,6 +128,7 @@ public class Delay extends Fragment {
             Delay.this.tasks.set(position, mytext.getText().toString());
             Delay.this.ddl.set(position, date);
             saveData();
+            saveToServer();
             adapter.notifyItemRangeChanged(0,tasks.size());
         });
         //取消
@@ -148,6 +151,20 @@ public class Delay extends Fragment {
         SharedPreferencesUtil sharedPreferencesUtil = new SharedPreferencesUtil(getActivity(), "tasksAndddl");
         sharedPreferencesUtil.putListData("tasks", tasks);
         sharedPreferencesUtil.putListData("ddl", ddl);
+    }
+
+    public void saveToServer(){
+        //TODO
+    }
+
+
+    /**
+     * 读取服务器存储的数据
+     *
+     * @param filename 需要把数据存到这个文件里
+     */
+    public void readFromServer(String filename){
+        //TODO
     }
 }
 
