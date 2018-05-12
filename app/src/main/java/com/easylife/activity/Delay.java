@@ -23,6 +23,7 @@ import com.prolificinteractive.materialcalendarview.CalendarDay;
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import cn.bmob.v3.b.V;
@@ -76,11 +77,14 @@ public class Delay extends Fragment {
 
         final EditText mytext = layout.findViewById(R.id.tasks);
         MaterialCalendarView calendar = layout.findViewById(R.id.calendar);
+        calendar.state().edit()
+                .setMinimumDate(CalendarDay.today())
+                .commit();
 
 
         builder.setPositiveButton("ok", (arg0, arg1) -> {
             CalendarDay day = calendar.getSelectedDate();
-            String date = day.getYear()+"-"+day.getMonth()+"-"+day.getDay();
+            String date = day.getYear()+"-"+(day.getMonth()+1)+"-"+day.getDay();
             // TODO Auto-generated method stub
             Toast.makeText(getActivity(), "Your add is applied", Toast.LENGTH_SHORT).show();
             Delay.this.tasks.add(mytext.getText().toString());
@@ -105,6 +109,9 @@ public class Delay extends Fragment {
 
         final EditText mytext = layout.findViewById(R.id.tasks);
         MaterialCalendarView calendar = layout.findViewById(R.id.calendar);
+        calendar.state().edit()
+                .setMinimumDate(CalendarDay.today())
+                .commit();
 
         //设置默认文本
         TextView textView = (TextView)view;
@@ -113,7 +120,7 @@ public class Delay extends Fragment {
 
         builder.setPositiveButton("ok", (arg0, arg1) -> {
             CalendarDay day = calendar.getSelectedDate();
-            String date = day.getYear()+"-"+day.getMonth()+"-"+day.getDay();
+            String date = day.getYear()+"-"+(day.getMonth()+1)+"-"+day.getDay();
             // TODO Auto-generated method stub
             Toast.makeText(getActivity(), "Your change is applied", Toast.LENGTH_SHORT).show();
             Delay.this.tasks.set(position, mytext.getText().toString());
