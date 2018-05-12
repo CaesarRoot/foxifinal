@@ -58,10 +58,12 @@ public class Delay extends Fragment {
     private void initData() {
         layoutManager = new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false);
 
-        readFromServer("tasksAndddl");
-        readData();
 //        加载 tasks & ddl 数据
 //        注意顺序一定要先于adapter 否则adapter就无法正确绑定数组
+//        从服务器加载文件
+
+        readFromServer("tasksAndddl");
+        readData();
 
         adapter = new DelayPagerAdapter(tasks, ddl);
         adapter.setOnItemClickListener((view, position) -> showDialogtoChange(view, position));
