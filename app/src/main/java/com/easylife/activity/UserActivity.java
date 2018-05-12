@@ -4,7 +4,9 @@ import android.app.ActionBar;
 import android.app.ActivityOptions;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -17,22 +19,27 @@ import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.easylife.adapter.NotePagerAdapter;
 import com.easylife.entity.User;
 import com.easylife.fragment.DelayFragment;
 import com.easylife.fragment.FocusFragment;
 import com.easylife.fragment.RelaxFragment;
+import com.github.mikephil.charting.utils.Utils;
 import com.makeramen.roundedimageview.RoundedImageView;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import cn.bmob.v3.BmobUser;
+import cn.bmob.v3.datatype.BmobFile;
+import cn.bmob.v3.exception.BmobException;
+import cn.bmob.v3.listener.DownloadFileListener;
 
 public class UserActivity extends FragmentActivity {
     private TextView week;
-    private TextView friend;
     private TextView settings;
     private TextView about;
     private TextView nickname;
@@ -44,9 +51,15 @@ public class UserActivity extends FragmentActivity {
     private RadioGroup chartGroup;
     private ImageView back;
 
+    private String avatarSrc = Environment.getExternalStorageDirectory().getPath() + "/EasyLife/avatar/";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //初始化统计表工具包
+        Utils.init(this);
+
         setContentView(R.layout.activity_user);
 
         //初始化标题栏
@@ -75,8 +88,31 @@ public class UserActivity extends FragmentActivity {
 
     //初始化用户数据
     private void initUserInfo() {
-        User currentUser = getCurrentUser();
-        nickname.setText(currentUser.getNickname());
+        User user = getCurrentUser();
+        nickname.setText(user.getNickname());
+        //初始化头像
+        if (new File(avatarSrc + user.getAvatarFileName()).exists()) {
+            avatar.setImageBitmap(BitmapFactory.decodeFile(avatarSrc + user.getAvatarFileName()));
+        } else if (!user.getAvatarUrl().equals("null")) {
+            BmobFile avatar = new BmobFile(user.getAvatarFileName(), "", user.getAvatarUrl());
+            avatar.download(new File(avatarSrc + user.getAvatarFileName()), new DownloadFileListener() {
+                @Override
+                public void done(String s, BmobException e) {
+                    if (e != null) {
+                        UserActivity.this.avatar.setImageResource(R.mipmap.avatar);
+                    } else {
+                        UserActivity.this.avatar.setImageBitmap(BitmapFactory.decodeFile(s + "/" + user.getAvatarFileName()));
+                    }
+                }
+
+                @Override
+                public void onProgress(Integer integer, long l) {
+
+                }
+            });
+        } else {
+            UserActivity.this.avatar.setImageResource(R.mipmap.avatar);
+        }
     }
 
     private void setOnClick() {
@@ -177,20 +213,17 @@ public class UserActivity extends FragmentActivity {
         /**
          * 为 RadioGroup 设置选中变化事件监听，当 RadioButton 状态变化，我们同步 Viewpager 的选中页面
          **/
-        chartGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                switch (checkedId) {
-                    case R.id.focus_radiobutton:
-                        charts.setCurrentItem(0);
-                        break;
-                    case R.id.delay_radiobutton:
-                        charts.setCurrentItem(1);
-                        break;
-                    case R.id.relax_radiobutton:
-                        charts.setCurrentItem(2);
-                        break;
-                }
+        chartGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            switch (checkedId) {
+                case R.id.focus_radiobutton:
+                    charts.setCurrentItem(0);
+                    break;
+                case R.id.delay_radiobutton:
+                    charts.setCurrentItem(1);
+                    break;
+                case R.id.relax_radiobutton:
+                    charts.setCurrentItem(2);
+                    break;
             }
         });
     }
@@ -204,7 +237,10 @@ public class UserActivity extends FragmentActivity {
                 preferences.getString("nickname", "null"),
                 preferences.getString("password", "null"),
                 preferences.getString("user_phone", "null"));
-
+        currentUser.setObjectId(preferences.getString("objectID", "null"));
+        currentUser.setPassword(preferences.getString("password", "null"));
+        currentUser.setAvatarUrl(preferences.getString("avatar", "null"));
+        currentUser.setAvatarFileName(preferences.getString("avatar_file_name", "null"));
         return currentUser;
     }
 }

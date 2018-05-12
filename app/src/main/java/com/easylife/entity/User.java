@@ -7,6 +7,7 @@ public class User extends BmobUser {
     private String nickname;
     private String pw;
     private String avatarUrl;
+    private String avatarFileName;
 
     public User(){}
 
@@ -60,5 +61,13 @@ public class User extends BmobUser {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
+    }
+
+    public String getAvatarFileName() {
+        return avatarFileName;
+    }
+
+    public void setAvatarFileName(String avatarFileName) {
+        this.avatarFileName = avatarFileName;
     }
 }

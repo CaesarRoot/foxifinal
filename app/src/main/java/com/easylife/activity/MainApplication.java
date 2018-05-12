@@ -4,6 +4,7 @@ import android.app.Application;
 
 
 import com.easylife.entity.User;
+import com.github.mikephil.charting.utils.Utils;
 
 import cn.bmob.v3.Bmob;
 import cn.bmob.v3.BmobObject;
