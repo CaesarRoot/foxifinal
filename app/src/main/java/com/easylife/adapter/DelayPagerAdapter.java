@@ -12,16 +12,18 @@ import java.util.List;
 
 public class DelayPagerAdapter extends RecyclerView.Adapter<DelayPagerAdapter.ViewHolder> {
     public List<String> tasks;
-//    public OnRecyclerViewItemClickListener mOnItemClickListener = null;
+    public List<String> ddl;
+    public OnRecyclerViewItemClickListener mOnItemClickListener = null;
 
-    public DelayPagerAdapter(List<String> tasks) {
+    public DelayPagerAdapter(List<String> tasks, List<String> ddl) {
         this.tasks = tasks;
+        this.ddl = ddl;
     }
 
-//    //定义回调方法 1.定义接口 2.声明属性 3.设置方法 4.绑定控件
-//    public void setOnItemClickListener(OnRecyclerViewItemClickListener listener){
-//        this.mOnItemClickListener = listener;
-//    }
+    //定义回调方法 1.定义接口 2.声明属性 3.设置方法 4.绑定控件
+    public void setOnItemClickListener(OnRecyclerViewItemClickListener listener){
+        this.mOnItemClickListener = listener;
+    }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -32,6 +34,7 @@ public class DelayPagerAdapter extends RecyclerView.Adapter<DelayPagerAdapter.Vi
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         holder.tasks.setText(tasks.get(position));
+        holder.ddl.setText(ddl.get(position));
     }
 
     @Override
@@ -39,21 +42,23 @@ public class DelayPagerAdapter extends RecyclerView.Adapter<DelayPagerAdapter.Vi
         return tasks.size();
     }
 
-//    public interface OnRecyclerViewItemClickListener{
-//        void onItemClick(View view, int position);
-//    }
+    public interface OnRecyclerViewItemClickListener{
+        void onItemClick(View view, int position);
+    }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         private TextView tasks;
+        private TextView ddl;
 
         public ViewHolder(View itemView) {
             super(itemView);
             tasks = itemView.findViewById(R.id.tasks);
-//            tasks.setOnClickListener(v -> {
-//                if (mOnItemClickListener != null) {
-//                    mOnItemClickListener.onItemClick(v, ViewHolder.this.getLayoutPosition());
-//                }
-//            });
+            ddl = itemView.findViewById(R.id.ddl);
+            tasks.setOnClickListener(v -> {
+                if (mOnItemClickListener != null) {
+                    mOnItemClickListener.onItemClick(v, ViewHolder.this.getLayoutPosition());
+                }
+            });
         }
     }
 }
