@@ -4,9 +4,9 @@ import cn.bmob.v3.BmobObject;
 import cn.bmob.v3.datatype.BmobDate;
 
 public class Delay extends BmobObject {
-    private static final Character STATE_TODO = 0;
-    private static final Character STATE_FINISH = 1;
-    private static final Character STATE_FAILED = 2;
+    public static final Character STATE_TODO = 0;
+    public static final Character STATE_FINISH = 1;
+    public static final Character STATE_FAILED = 2;
     private static final Character URGENCY_DEGREE_HIGH = 3;
     private static final Character URGENCY_DEGREE_LOW = 1;
     private static final Character URGENCY_DEGREE_NORMAL = 2;

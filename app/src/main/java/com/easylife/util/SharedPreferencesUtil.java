@@ -26,8 +26,9 @@ public class SharedPreferencesUtil {
      * 用于保存String数组
      *
      * @param key  key
+     * @param taskType
      */
-    public void putListData(String key, List<String> list) {
+    public void putListData(String key, List<String> list, int taskType) {
         SharedPreferences.Editor editor = sp.edit();
         JsonArray array = new JsonArray();
         try {
@@ -45,8 +46,9 @@ public class SharedPreferencesUtil {
      * 获取保存的List
      *
      * @param key key
+     * @param taskType
      */
-    public List<String> getListData(String key) {
+    public List<String> getListData(String key, int taskType) {
         List<String> list = new ArrayList<>();
         String json = sp.getString(key, "");
         if (!json.equals("") && json.length() > 0) {
