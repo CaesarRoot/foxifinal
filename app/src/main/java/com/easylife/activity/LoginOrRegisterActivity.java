@@ -253,6 +253,7 @@ public class LoginOrRegisterActivity extends FragmentActivity {
         editor.putString("nickname", user.getNickname());
         editor.putString("password", user.getPassword());
         editor.putString("avatar", user.getAvatarUrl());
+        editor.putString("avatar_file_name",user.getAvatarFileName());
         editor.apply();
     }
 

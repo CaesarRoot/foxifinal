@@ -12,4 +12,11 @@
         android:layout_height="wrap_content"
         android:maxLines="1"/>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="15dp"
+        android:text="注意：账号只能修改一次！修改之后不能再更改！"
+        android:textColor="@android:color/holo_red_dark" />
+
 </LinearLayout>

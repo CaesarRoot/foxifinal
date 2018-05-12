@@ -103,7 +103,7 @@ public class FocusFragment extends Fragment {
         lineChart.getXAxis().setDrawGridLines(false);
         lineChart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
 
-        lineChart.animateXY(1000, 1000);
+        lineChart.animateXY(1000,1000);
     }
 
     @Override

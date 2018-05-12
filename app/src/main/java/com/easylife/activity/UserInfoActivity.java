@@ -36,12 +36,20 @@ import com.makeramen.roundedimageview.RoundedImageView;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import cn.bmob.v3.datatype.BmobFile;
 import cn.bmob.v3.exception.BmobException;
+import cn.bmob.v3.listener.DownloadFileListener;
 import cn.bmob.v3.listener.UpdateListener;
 import cn.bmob.v3.listener.UploadFileListener;
 
@@ -57,6 +65,7 @@ public class UserInfoActivity extends Activity {
     private ImageView back;
     private RoundedImageView avatar;
 
+    private String avatarSrc = Environment.getExternalStorageDirectory().getPath() + "/EasyLife/avatar/";
     private User currentUser;
 
     //调用系统相册-选择图片
@@ -224,6 +233,7 @@ public class UserInfoActivity extends Activity {
                     @Override
                     public void done(BmobException e) {
                         if (e == null) {
+                            saveLocalUser(user);
                             nickname.setText(newNickname);
                             waitingDialog.dismiss();
                             Toast.makeText(UserInfoActivity.this, "修改成功！", Toast.LENGTH_SHORT).show();
@@ -271,6 +281,7 @@ public class UserInfoActivity extends Activity {
                             @Override
                             public void done(BmobException e) {
                                 if (e == null) {
+                                    saveLocalUser(user);
                                     username.setText(newUsername);
                                     waitingDialog.dismiss();
                                     Toast.makeText(UserInfoActivity.this, "设置成功！", Toast.LENGTH_SHORT).show();
@@ -305,7 +316,10 @@ public class UserInfoActivity extends Activity {
                 }
                 int columnIndex = c.getColumnIndex(filePathColumns[0]);
                 String imagePath = c.getString(columnIndex);
-                showImage(imagePath);
+                File destFile = new File(avatarSrc + new File(imagePath).getName());
+                //复制头像
+                moveFile(imagePath, destFile);
+                showImage(destFile.getAbsolutePath());
                 c.close();
             }
 
@@ -314,6 +328,52 @@ public class UserInfoActivity extends Activity {
                  * 这种方法是通过内存卡的路径进行读取图片，所以的到的图片是拍摄的原图
                  */
                 showImage(picPath);
+            }
+        }
+    }
+
+    //复制文件
+    private void moveFile(String imagePath, File destFile) {
+        if (destFile.exists()) {
+            destFile.delete();
+        } else {
+            if (!destFile.getParentFile().exists()) {
+                destFile.mkdirs();
+            }
+        }
+        //复制文件
+        int byteread = 0;//读取的字节数
+        InputStream in = null;
+        OutputStream out = null;
+        try {
+            in = new FileInputStream(imagePath);
+            out = new FileOutputStream(destFile);
+            byte[] buffer = new byte[1024];
+            /*
+             * 方法说明：
+             * ①：将指定 byte 数组中从偏移量 off 开始的 len 个字节写入此输出流。
+             *      write(byte[] b, int off, int len)
+             *          b - 数据
+             *          off - 数据中的起始偏移量。
+             *          len - 要写入的字节数。
+             * ②：in.read(buffer))!=-1,是从流buffer中读取一个字节，当流结束的时候read返回-1
+             */
+
+            while ((byteread = in.read(buffer)) != -1) {
+                out.write(buffer, 0, byteread);
+            }
+        } catch (IOException e) {
+        } finally {
+            try {
+                if (out != null) {
+                    out.close();
+                }
+                if (in != null) {
+                    in.close();
+                }
+            } catch (IOException e) {
+
+                e.printStackTrace();
             }
         }
     }
@@ -341,23 +401,29 @@ public class UserInfoActivity extends Activity {
             avatar.upload(new UploadFileListener() {
                 @Override
                 public void done(BmobException e) {
-                    currentUser.setValue("avatar", avatar.getFileUrl());
-                }
-            });
-            currentUser.update(currentUser.getObjectId(), new UpdateListener() {
-                @Override
-                public void done(BmobException e) {
-                    waitingDialog.dismiss();
-                    if (e != null) {
-                        e.printStackTrace();
-                        Toast.makeText(UserInfoActivity.this, "头像修改失败！请重试！\n" + e.toString(), Toast.LENGTH_SHORT).show();
+                    if (e == null) {
+                        currentUser.setAvatarUrl(avatar.getFileUrl());
+                        currentUser.setAvatarFileName(new File(imagePath).getName());
+                        saveLocalUser(currentUser);
+                        currentUser.update(currentUser.getObjectId(), new UpdateListener() {
+                            @Override
+                            public void done(BmobException e) {
+                                waitingDialog.dismiss();
+                                if (e != null) {
+                                    e.printStackTrace();
+                                    Toast.makeText(UserInfoActivity.this, "头像修改失败！请重试！\n" + e.toString(), Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Toast.makeText(UserInfoActivity.this, "头像修改成功！", Toast.LENGTH_SHORT).show();
+                                    try {
+                                        UserInfoActivity.this.avatar.setImageBitmap(BitmapFactory.decodeStream(new FileInputStream(imagePath)));
+                                    } catch (FileNotFoundException e1) {
+                                        e1.printStackTrace();
+                                    }
+                                }
+                            }
+                        });
                     } else {
-                        Toast.makeText(UserInfoActivity.this, "头像修改成功！", Toast.LENGTH_SHORT).show();
-                        try {
-                            UserInfoActivity.this.avatar.setImageBitmap(BitmapFactory.decodeStream(new FileInputStream(imagePath)));
-                        } catch (FileNotFoundException e1) {
-                            e1.printStackTrace();
-                        }
+                        Toast.makeText(UserInfoActivity.this, e.toString(), Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -406,6 +472,30 @@ public class UserInfoActivity extends Activity {
         logout = findViewById(R.id.logout_textview);
         back = findViewById(R.id.back_imageview);
         avatar = findViewById(R.id.avatar_imageview);
+
+        //初始化头像
+        if (new File(avatarSrc + currentUser.getAvatarFileName()).exists()) {
+            avatar.setImageBitmap(BitmapFactory.decodeFile(avatarSrc + currentUser.getAvatarFileName()));
+        } else if (!currentUser.getAvatarUrl().equals("null")) {
+            BmobFile avatar = new BmobFile(currentUser.getAvatarFileName(), "", currentUser.getAvatarUrl());
+            avatar.download(new File(avatarSrc + currentUser.getAvatarFileName()), new DownloadFileListener() {
+                @Override
+                public void done(String s, BmobException e) {
+                    if (e != null) {
+                        UserInfoActivity.this.avatar.setImageResource(R.mipmap.avatar);
+                    } else {
+                        UserInfoActivity.this.avatar.setImageBitmap(BitmapFactory.decodeFile(s + "/" + currentUser.getAvatarFileName()));
+                    }
+                }
+
+                @Override
+                public void onProgress(Integer integer, long l) {
+
+                }
+            });
+        } else {
+            UserInfoActivity.this.avatar.setImageResource(R.mipmap.avatar);
+        }
     }
 
     //获取本地用户
@@ -419,7 +509,8 @@ public class UserInfoActivity extends Activity {
                 preferences.getString("user_phone", "null"));
         currentUser.setObjectId(preferences.getString("objectID", "null"));
         currentUser.setPassword(preferences.getString("password", "null"));
-        currentUser.setAvatarUrl(preferences.getString("avatar","null"));
+        currentUser.setAvatarUrl(preferences.getString("avatar", "null"));
+        currentUser.setAvatarFileName(preferences.getString("avatar_file_name", "null"));
         return currentUser;
     }
 
@@ -455,4 +546,16 @@ public class UserInfoActivity extends Activity {
         return null;
     }
 
+    //保存已登录用户到本地
+    private void saveLocalUser(User user) {
+        SharedPreferences.Editor editor = getSharedPreferences("login_user", MODE_PRIVATE).edit();
+        editor.putString("objectID", user.getObjectId());
+        editor.putString("user_phone", user.getMobilePhoneNumber());
+        editor.putString("username", user.getUsername());
+        editor.putString("nickname", user.getNickname());
+        editor.putString("password", user.getPassword());
+        editor.putString("avatar", user.getAvatarUrl());
+        editor.putString("avatar_file_name", user.getAvatarFileName());
+        editor.apply();
+    }
 }
