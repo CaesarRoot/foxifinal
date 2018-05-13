@@ -29,7 +29,6 @@ import java.util.List;
  * 主界面
  *
  * @author zengtao 2015年5月20日 下午7:36:03
- *
  */
 public class FocusTimerActivity extends Activity {
 
@@ -112,8 +111,8 @@ public class FocusTimerActivity extends Activity {
      */
     private void initData1() {
         list = new ArrayList<Pickers>();
-        id = new String[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" };
-        name = new String[] { "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12" };
+        id = new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"};
+        name = new String[]{"00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"};
         for (int i = 0; i < name.length; i++) {
             list.add(new Pickers(name[i], id[i]));
         }
@@ -124,7 +123,7 @@ public class FocusTimerActivity extends Activity {
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();   //获取屏幕宽度
         int widthPixels = displayMetrics.widthPixels;
 
-        pickerscrolllview1.setMyWidth(widthPixels/5*2 *2 - 80);
+        pickerscrolllview1.setMyWidth(widthPixels / 5 * 2 * 2 - 80);
     }
 
     // 滚动选择器选中事件
@@ -138,8 +137,8 @@ public class FocusTimerActivity extends Activity {
 
     private void initData2() {
         list = new ArrayList<Pickers>();
-        id = new String[] {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59" };
-        name = new String[] {"00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59"};
+        id = new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59"};
+        name = new String[]{"00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59"};
         for (int i = 0; i < name.length; i++) {
             list.add(new Pickers(name[i], id[i]));
         }
@@ -154,7 +153,7 @@ public class FocusTimerActivity extends Activity {
     }
 
     // 滚动选择器选中事件
-   PickerScrollView.onSelectListener pickerListener2 = new PickerScrollView.onSelectListener() {
+    PickerScrollView.onSelectListener pickerListener2 = new PickerScrollView.onSelectListener() {
 
         @Override
         public void onSelect(Pickers pickers) {
@@ -177,7 +176,7 @@ public class FocusTimerActivity extends Activity {
                 myCountDownTimer.start();
                 CountDownCircle();    //倒计时小圆点移动
                 countdownCircle.setTotaltime(millisInFuture1 + millisInFuture2);   //开始画倒计时圈
-            }else if (v == bt_tocontrol){
+            } else if (v == bt_tocontrol) {
                 Intent intent = new Intent(FocusTimerActivity.this, MainControlActivity.class);
                 startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(FocusTimerActivity.this, bt_tocontrol, "shared").toBundle());
             }
@@ -185,7 +184,7 @@ public class FocusTimerActivity extends Activity {
     };
 
     //倒计时小圆点的移动
-    public void CountDownCircle(){
+    public void CountDownCircle() {
         ObjectAnimator animator = ObjectAnimator.ofFloat(dot, "rotation", 360f, 0f);  //旋转view来使圆圈倒转
         animator.setDuration(millisInFuture1 + millisInFuture2);
         animator.start();
@@ -227,24 +226,24 @@ public class FocusTimerActivity extends Activity {
         }
     }
 
-    private String to2Str(long i){
+    private String to2Str(long i) {
 
-        if(i > 9){
-            return i+"";
-        }else{
-            return "0"+i;
+        if (i > 9) {
+            return i + "";
+        } else {
+            return "0" + i;
         }
 
     }
 
-    private String toTimeStr(long secTotal){
+    private String toTimeStr(long secTotal) {
 
         String result = null;
         secTotal = secTotal / 1000;
         long hour = secTotal / 3600;
-        long min = ( secTotal%3600 ) / 60;
-        long sec = ( secTotal%3600 ) % 60;
-        result = to2Str(hour)+":"+to2Str(min)+":"+to2Str(sec);
+        long min = (secTotal % 3600) / 60;
+        long sec = (secTotal % 3600) % 60;
+        result = to2Str(hour) + ":" + to2Str(min) + ":" + to2Str(sec);
 
         return result;
     }
