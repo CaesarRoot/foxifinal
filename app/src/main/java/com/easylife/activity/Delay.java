@@ -66,7 +66,7 @@ public class Delay extends Fragment {
 //        注意顺序一定要先于adapter 否则adapter就无法正确绑定数组
 
         adapter = new DelayPagerAdapter(tasks, ddl);
-        adapter.setOnItemClickListener((view, position) -> showDialogtoChange(view, position));
+        adapter.setOnItemClickListener(this::showDialogtoChange);
     }
 
     private void showDialogtoAdd() {

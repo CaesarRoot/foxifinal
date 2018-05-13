@@ -22,19 +22,17 @@ public class ImageAssetManager {
     public void initAssets(Context context) {
         try {
             assets = context.getAssets();         /*获取assets目录*/
-            files = assets.list("");     /*返回给定路径中所有资源的字符串数组*/
+            files = assets.list("splash_pic");     /*返回给定路径中所有资源的字符串数组*/
             Images = new ArrayList<>();
-            for (String s :files) {
-                if (s.contains(".jpg")){
-                    Images.add(s);
-                }
+            for (String s : files) {
+                Images.add("splash_pic/" + s);
             }
             sentenceIs = context.getAssets().open("splash.txt");
             InputStreamReader isr = new InputStreamReader(sentenceIs);
             BufferedReader br = new BufferedReader(isr);
-            while (true){
+            while (true) {
                 String temp = br.readLine();
-                if (temp == null){
+                if (temp == null) {
                     break;
                 }
                 sentences.add(temp);
@@ -78,7 +76,7 @@ public class ImageAssetManager {
         this.sentences = sentences;
     }
 
-    public String getSentence(int index){
+    public String getSentence(int index) {
         return sentences.get(index);
     }
 }

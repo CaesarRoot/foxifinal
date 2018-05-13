@@ -59,16 +59,28 @@
         <activity
             android:name=".LoginOrRegisterActivity"
             android:screenOrientation="portrait" />
-        <activity android:name=".MainControlActivity" />
-        <activity android:name=".FocusTimerActivity" />
+        <activity
+            android:name=".MainControlActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".FocusTimerActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".UserActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/UserTheme" />
-        <activity android:name=".AboutActivity" />
-        <activity android:name=".WeeklyReportActivity" />
-        <activity android:name=".SettingsActivity" />
+        <activity
+            android:name=".AboutActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".WeeklyReportActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".SettingsActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".UserInfoActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/UserTheme" />
     </application>
 
