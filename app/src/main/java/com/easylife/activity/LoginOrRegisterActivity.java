@@ -31,6 +31,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.easylife.entity.Task;
 import com.easylife.entity.User;
 import com.easylife.util.ImageAssetManager;
 import com.github.mikephil.charting.charts.PieChart;
@@ -198,21 +199,6 @@ public class LoginOrRegisterActivity extends FragmentActivity {
             return;
         }
 
-//        if (phone.charAt(0) == 'e') {
-//            username = phone;
-//            if (!phone.substring(2, phone.length()).matches(phonePattern)) {
-//                dialog.dismiss();
-//                Toast.makeText(LoginOrRegisterActivity.this, "请输入正确的账号！", Toast.LENGTH_SHORT).show();
-//                return;
-//            }
-//        } else {
-//            username = "el" + phone;
-//            if (!phone.matches(phonePattern)) {
-//                dialog.dismiss();
-//                Toast.makeText(LoginOrRegisterActivity.this, "请输入正确的手机号！", Toast.LENGTH_SHORT).show();
-//                return;
-//            }
-//        }
         User user = new User();
         user.setPassword(password);
         MainApplication.userQuery.addWhereEqualTo("mobilePhoneNumber", phoneOrAccount);
@@ -296,6 +282,10 @@ public class LoginOrRegisterActivity extends FragmentActivity {
                     Toast.makeText(LoginOrRegisterActivity.this, e.toString(), Toast.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(LoginOrRegisterActivity.this, "注册成功！", Toast.LENGTH_SHORT).show();
+
+                    //初始化事务集数据表
+                    initServerTable(user);
+
                     // 实现自动登录
                     ProgressDialog dialog = new ProgressDialog(LoginOrRegisterActivity.this);
                     dialog.setMessage("正在登录...");
@@ -320,6 +310,21 @@ public class LoginOrRegisterActivity extends FragmentActivity {
                         }
                     });
                 }
+            }
+        });
+    }
+
+    //初始化事务集数据表
+    private void initServerTable(User user) {
+        Task task = new Task();
+        task.setUsername(user.getUsername());
+        task.setFailed("");
+        task.setFinished("");
+        task.setTodo("");
+        task.save(new SaveListener<String>() {
+            @Override
+            public void done(String s, BmobException e) {
+
             }
         });
     }

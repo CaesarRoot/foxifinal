@@ -51,18 +51,15 @@ public class MainControlActivity extends FragmentActivity {
         FragAdapter adapter = new FragAdapter(getSupportFragmentManager(), fragments);
 
         //设定适配器
-        ViewPager vp = (ViewPager)findViewById(R.id.viewpager);
+        ViewPager vp = findViewById(R.id.viewpager);
         vp.setAdapter(adapter);
         vp.setCurrentItem(1);
 
         //跳转到叶哥的账户界面
         yege = findViewById(R.id.yege);
-        yege.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainControlActivity.this, UserActivity.class);
-                startActivity(intent);
-            }
+        yege.setOnClickListener(v -> {
+            Intent intent = new Intent(MainControlActivity.this, UserActivity.class);
+            startActivity(intent);
         });
     }
 }

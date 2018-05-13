@@ -3,6 +3,7 @@ package com.easylife.activity;
 import android.app.Application;
 
 
+import com.easylife.entity.Task;
 import com.easylife.entity.User;
 import com.github.mikephil.charting.utils.Utils;
 
@@ -23,6 +24,7 @@ public class MainApplication extends Application {
 
         userQuery = new BmobQuery<User>();
         dataQuery = new BmobQuery<BmobObject>();
+
     }
 
 }
