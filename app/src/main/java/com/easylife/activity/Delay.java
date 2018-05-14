@@ -62,10 +62,9 @@ public class Delay extends Fragment {
         layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
 
         readData(com.easylife.entity.Task.STATE_TODO);
-//        加载 tasks & ddl 数据
-//        注意顺序一定要先于adapter 否则adapter就无法正确绑定数组
 
         adapter = new DelayPagerAdapter(tasks, ddl);
+
         adapter.setOnItemClickListener(this::showDialogtoChange);
     }
 
