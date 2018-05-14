@@ -16,6 +16,8 @@ import android.view.View;
 import android.view.Window;
 
 import com.easylife.adapter.FragAdapter;
+import com.easylife.adapter.RelaxBackgroundAdapter;
+import com.jude.rollviewpager.RollPagerView;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,5 +72,6 @@ public class MainControlActivity extends FragmentActivity {
             Intent intent = new Intent(MainControlActivity.this, UserActivity.class);
             startActivity(intent);
         });
+
     }
 }

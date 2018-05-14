@@ -34,7 +34,7 @@ public class RelaxBackgroundAdapter extends StaticPagerAdapter {
         opts.inSampleSize = 3;
         initAssets();
         try {
-            fis = manager.open(images.get((int) (Math.random() * images.size())));
+            fis = manager.open(images.get(position));
         } catch (IOException e) {
             e.printStackTrace();
         }
