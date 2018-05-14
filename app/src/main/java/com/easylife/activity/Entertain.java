@@ -1,9 +1,11 @@
 package com.easylife.activity;
 
 
+import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -66,9 +68,15 @@ public class Entertain extends Fragment {
             }
             if (player.isPlaying()) {
                 player.pause();
+                play.setBackground(getResources().getDrawable(R.drawable.music_pause_button));
+                play.setText("播 放");
                 isPlayable = false;
             } else {
                 player.start();
+                play.setBackground(getResources().getDrawable(R.drawable.music_pause_button));
+                Handler handler = new Handler();
+                handler.postDelayed(() -> play.setBackground(getResources().getDrawable(R.drawable.music_waiting_button)), 2000);
+                play.setText("暂 停");
                 isPlayable = true;
             }
         });

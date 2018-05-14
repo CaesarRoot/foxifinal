@@ -29,11 +29,11 @@
         android:layout_height="match_parent">
 
         <Button
-            android:elevation="10dp"
+            android:elevation="20dp"
             android:id="@+id/play_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/music_play_button_circle"
+            android:background="@drawable/music_pause_button"
             android:text="播 放"
             android:textColor="@android:color/white"
             android:textSize="24dp" />
