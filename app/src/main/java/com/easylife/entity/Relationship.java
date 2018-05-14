@@ -7,7 +7,7 @@ public class Relationship extends BmobObject {
     private String friendUserame;
     private String buddyNotes;
 
-    public Relationship(){};
+    public Relationship(){}
 
     public Relationship(String username, String friendUserame) {
         this.username = username;

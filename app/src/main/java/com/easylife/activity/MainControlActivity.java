@@ -1,8 +1,12 @@
 package com.easylife.activity;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Looper;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
@@ -12,11 +16,18 @@ import android.view.View;
 import android.view.Window;
 
 import com.easylife.adapter.FragAdapter;
+import com.easylife.adapter.RelaxBackgroundAdapter;
+import com.jude.rollviewpager.RollPagerView;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainControlActivity extends FragmentActivity {
+    public CountDownTimer timer;
 
     private View yege;
 
@@ -44,25 +55,23 @@ public class MainControlActivity extends FragmentActivity {
         getWindow().setStatusBarColor(Color.TRANSPARENT);
 
         //构造适配器
-        List<Fragment> fragments=new ArrayList<Fragment>();
+        List<Fragment> fragments = new ArrayList<>();
         fragments.add(new Entertain());
         fragments.add(new FocusMain());
         fragments.add(new Delay());
         FragAdapter adapter = new FragAdapter(getSupportFragmentManager(), fragments);
 
         //设定适配器
-        ViewPager vp = (ViewPager)findViewById(R.id.viewpager);
+        ViewPager vp = findViewById(R.id.viewpager);
         vp.setAdapter(adapter);
         vp.setCurrentItem(1);
 
         //跳转到叶哥的账户界面
         yege = findViewById(R.id.yege);
-        yege.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainControlActivity.this, UserActivity.class);
-                startActivity(intent);
-            }
+        yege.setOnClickListener(v -> {
+            Intent intent = new Intent(MainControlActivity.this, UserActivity.class);
+            startActivity(intent);
         });
+
     }
 }

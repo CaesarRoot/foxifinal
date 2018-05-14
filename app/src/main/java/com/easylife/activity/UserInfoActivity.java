@@ -24,6 +24,7 @@ import android.support.v4.app.ActivityCompat;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -40,9 +41,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -300,6 +298,69 @@ public class UserInfoActivity extends Activity {
             }
         });
 
+        changePassword.setOnClickListener(listener -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            View view = LayoutInflater.from(this).inflate(R.layout.change_password_dialog, null);
+            EditText oldPassword = view.findViewById(R.id.old_password_edittext);
+            EditText newPassword = view.findViewById(R.id.new_password_edittext);
+            EditText confirmPassword = view.findViewById(R.id.confirm_password_edittext);
+            TextView notification = view.findViewById(R.id.notification_textview);
+            AlertDialog changePwDialog = builder
+                    .setView(view)
+                    .setPositiveButton("确定", null)
+                    .setNegativeButton("取消", null)
+                    .create();
+            changePwDialog.setOnShowListener(dialog -> {
+                Button posButton = changePwDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                Button negButton = changePwDialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+                posButton.setOnClickListener(l -> {
+                    // TODO: 2018/5/12 保存信息
+                    if (oldPassword.getText().toString().length() < 8 || oldPassword.getText().toString().length() > 16) {
+                        notification.setText("请输入正确的密码！");
+                        return;
+                    }
+                    if (newPassword.getText().toString().length() < 8 || newPassword.getText().toString().length() > 16) {
+                        notification.setText("密码长度必须不小于8位，且不大于16位！");
+                        return;
+                    }
+                    if (!confirmPassword.getText().toString().equals(newPassword.getText().toString())) {
+                        notification.setText("两次密码输入不一致，请检查！");
+                        return;
+                    }
+                    changePwDialog.dismiss();
+                    ProgressDialog waitingDialog = new ProgressDialog(this);
+                    waitingDialog.setTitle("修改密码");
+                    waitingDialog.setMessage("请稍候...");
+                    waitingDialog.setIndeterminate(true);
+                    waitingDialog.setCancelable(false);
+                    waitingDialog.show();
+                    User user = getCurrentUser();
+                    if (!oldPassword.getText().toString().equals(user.getPassword())){
+                        Toast.makeText(UserInfoActivity.this, "原密码错误，密码修改失败！", Toast.LENGTH_SHORT).show();
+                        waitingDialog.dismiss();
+                        return;
+                    }
+                    user.setPassword(newPassword.getText().toString());
+                    user.setPw(user.getPassword());
+                    user.update(new UpdateListener() {
+                        @Override
+                        public void done(BmobException e) {
+                            waitingDialog.dismiss();
+                            if (e == null) {
+                                Toast.makeText(UserInfoActivity.this, "密码修改成功！", Toast.LENGTH_SHORT).show();
+                                saveLocalUser(user);
+                            } else {
+                                Toast.makeText(UserInfoActivity.this, "密码修改失败！", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+                });
+                negButton.setOnClickListener(l -> {
+                    changePwDialog.dismiss();
+                });
+            });
+            changePwDialog.show();
+        });
     }
 
     @Override

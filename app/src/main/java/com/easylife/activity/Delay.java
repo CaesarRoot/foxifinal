@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.easylife.adapter.DelayPagerAdapter;
-import com.easylife.util.SharedPreferencesUtil;
+import com.easylife.util.SharePreferenceUtil;
 import com.prolificinteractive.materialcalendarview.CalendarDay;
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView;
 
@@ -28,19 +29,21 @@ public class Delay extends Fragment {
 
     private Button button;
 
-    public List<String> tasks = new ArrayList<>();
-    public List<String> ddl = new ArrayList<>();
+    public List<String> tasks = new ArrayList<String>();
+    public List<String> ddl = new ArrayList<String>();
+
+    private String[] taskTypeName = {"todo", "finished", "failed"};
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view= inflater.inflate(R.layout.fragementdelay_layout, container, false);
+        View view = inflater.inflate(R.layout.fragementdelay_layout, container, false);
 
         recyclerView = view.findViewById(R.id.recyclerview);
         recyclerView.setHasFixedSize(true);
         initData();
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
-        adapter.notifyItemRangeChanged(0,tasks.size());
+        adapter.notifyItemRangeChanged(0, tasks.size());
 
         button = view.findViewById(R.id.add);
         button.setOnClickListener(new Add());
@@ -48,7 +51,7 @@ public class Delay extends Fragment {
         return view;
     }
 
-    public class Add implements View.OnClickListener{
+    public class Add implements View.OnClickListener {
         @Override
         public void onClick(View v) {
             showDialogtoAdd();
@@ -56,20 +59,16 @@ public class Delay extends Fragment {
     }
 
     private void initData() {
-        layoutManager = new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false);
+        layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
 
-//        加载 tasks & ddl 数据
-//        注意顺序一定要先于adapter 否则adapter就无法正确绑定数组
-//        从服务器加载文件
-
-        readFromServer("tasksAndddl");
-        readData();
+        readData(com.easylife.entity.Task.STATE_TODO);
 
         adapter = new DelayPagerAdapter(tasks, ddl);
-        adapter.setOnItemClickListener((view, position) -> Delay.this.showDialogtoChange(view, position));
+
+        adapter.setOnItemClickListener(this::showDialogtoChange);
     }
 
-    private void showDialogtoAdd(){
+    private void showDialogtoAdd() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         LayoutInflater inflater = getLayoutInflater();
         final View layout = inflater.inflate(R.layout.mydialogtoadd_layout, null);//获取自定义布局
@@ -85,15 +84,14 @@ public class Delay extends Fragment {
 
         builder.setPositiveButton("ok", (arg0, arg1) -> {
             CalendarDay day = calendar.getSelectedDate();
-            String date = day.getYear()+"-"+(day.getMonth()+1)+"-"+day.getDay();
+            String date = day.getYear() + "-" + (day.getMonth() + 1) + "-" + day.getDay();
             // TODO Auto-generated method stub
             Toast.makeText(getActivity(), "Your add is applied", Toast.LENGTH_SHORT).show();
             Delay.this.tasks.add(mytext.getText().toString());
             Delay.this.ddl.add(date);
-            saveData();
-            saveToServer();
+            saveData(com.easylife.entity.Task.STATE_TODO);
             adapter.notifyItemInserted(0);
-            adapter.notifyItemRangeChanged(0,tasks.size());
+            adapter.notifyItemRangeChanged(0, tasks.size());
         });
         //取消
         builder.setNegativeButton("cancel", (arg0, arg1) -> {
@@ -104,7 +102,7 @@ public class Delay extends Fragment {
         dlg.show();
     }
 
-    public void showDialogtoChange(View view, int position){
+    public void showDialogtoChange(View view, int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         LayoutInflater inflater = getLayoutInflater();
         final View layout = inflater.inflate(R.layout.mydialogtochange_layout, null);//获取自定义布局
@@ -118,20 +116,19 @@ public class Delay extends Fragment {
                 .commit();
 
         //设置默认文本
-        TextView textView = (TextView)view;
+        TextView textView = (TextView) view;
         mytext.setText(textView.getText().toString());
 
 
         builder.setPositiveButton("ok", (arg0, arg1) -> {
             CalendarDay day = calendar.getSelectedDate();
-            String date = day.getYear()+"-"+(day.getMonth()+1)+"-"+day.getDay();
+            String date = day.getYear() + "-" + (day.getMonth() + 1) + "-" + day.getDay();
             // TODO Auto-generated method stub
             Toast.makeText(getActivity(), "Your change is applied", Toast.LENGTH_SHORT).show();
             Delay.this.tasks.set(position, mytext.getText().toString());
             Delay.this.ddl.set(position, date);
-            saveData();
-            saveToServer();
-            adapter.notifyItemRangeChanged(0,tasks.size());
+            saveData(com.easylife.entity.Task.STATE_TODO);
+            adapter.notifyItemRangeChanged(0, tasks.size());
         });
         //取消
         builder.setNegativeButton("cancel", (arg0, arg1) -> {
@@ -142,31 +139,27 @@ public class Delay extends Fragment {
         dlg.show();
     }
 
-    public void readData(){
-        SharedPreferencesUtil sharedPreferencesUtil = new SharedPreferencesUtil(getActivity(), "tasksAndddl");
-        tasks = sharedPreferencesUtil.getListData("tasks");
-        ddl = sharedPreferencesUtil.getListData("ddl");
+    public void readData(int taskType) {
+        SharePreferenceUtil SharePreferenceUtil = new SharePreferenceUtil(getActivity(), "tasks");
+        List<String> tasksToLoad = SharePreferenceUtil.getListData(taskTypeName[taskType]);
+        tasks = new ArrayList<>();
+        ddl = new ArrayList<>();
+        if (tasksToLoad.get(0).equals("null"))
+            return;
+        for (String task : tasksToLoad) {
+            if (task == null || task.length() == 1)
+                break;
+            Log.i("task", task);
+            tasks.add(task.split("@")[0]);
+            ddl.add(task.split("@")[1]);
+        }
     }
 
-    public void saveData() {
+    public void saveData(int taskType) {
         //存储数据
-        SharedPreferencesUtil sharedPreferencesUtil = new SharedPreferencesUtil(getActivity(), "tasksAndddl");
-        sharedPreferencesUtil.putListData("tasks", tasks);
-        sharedPreferencesUtil.putListData("ddl", ddl);
+        SharePreferenceUtil SharePreferenceUtil = new SharePreferenceUtil(getActivity(), "tasks");
+        SharePreferenceUtil.putListData(tasks, ddl, taskTypeName[taskType]);
     }
 
-    public void saveToServer(){
-        //TODO
-    }
-
-
-    /**
-     * 读取服务器存储的数据
-     *
-     * @param filename 需要把数据存到这个文件里
-     */
-    public void readFromServer(String filename){
-        //TODO
-    }
 }
 
